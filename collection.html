@@ -206,15 +206,18 @@ NAMES.forEach((name,i)=>{
 });
 
 const loaded=new Set();let lc=0;const lb=document.getElementById('lb');
-async function decode(b64){
-  const bin=atob(b64);const bytes=new Uint8Array(bin.length);
-  for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+const dcache={};
+async function decode(b64,name){
+  if(name&&dcache[name])return JSON.parse(dcache[name]);
+  const bin=atob(b64),bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
   const ds=new DecompressionStream('gzip');const w=ds.writable.getWriter();const r=ds.readable.getReader();
   w.write(bytes);w.close();const chunks=[];
   while(true){const{done,value}=await r.read();if(done)break;chunks.push(value);}
   const tot=chunks.reduce((a,c)=>a+c.length,0);const out=new Uint8Array(tot);let off=0;
   chunks.forEach(c=>{out.set(c,off);off+=c.length;});
-  return JSON.parse(new TextDecoder().decode(out));
+  const text=new TextDecoder().decode(out);
+  if(name)dcache[name]=text;
+  return JSON.parse(text);
 }
 
 const io=new IntersectionObserver(async entries=>{
@@ -223,7 +226,7 @@ const io=new IntersectionObserver(async entries=>{
     const idx=+e.target.dataset.idx;
     if(loaded.has(idx))continue;loaded.add(idx);io.unobserve(e.target);
     const b64=window.RB64[NAMES[idx]];if(!b64)continue;
-    const data=await decode(b64);
+    const data=await decode(b64,NAMES[idx]);
     const cont=document.getElementById('ri-'+idx);if(!cont)continue;
     const anim=lottie.loadAnimation({container:cont,renderer:'svg',loop:true,autoplay:false,animationData:data});
     lc++;lb.style.width=Math.min(lc/50*100,100)+'%';
@@ -256,7 +259,7 @@ async function openModal(name,idx){
   if(mAnim){mAnim.destroy();mAnim=null;}
   ov.classList.add('open');
   const b64=window.RB64[name];
-  if(b64){const data=await decode(b64);mAnim=lottie.loadAnimation({container:mr,renderer:'svg',loop:true,autoplay:true,animationData:data});}
+  if(b64){const data=await decode(b64,name);mAnim=lottie.loadAnimation({container:mr,renderer:'svg',loop:true,autoplay:true,animationData:data});}
 }
 document.getElementById('modal').addEventListener('click',e=>{
   if(e.target===e.currentTarget||e.target.id==='mcls'){e.currentTarget.classList.remove('open');if(mAnim)mAnim.stop();}
@@ -268,9 +271,9 @@ const BG_NAMES=["48. Galaxy Saturn", "50. DopDop Yes Yes", "05. Blue Gold", "08.
 async function spawnBg(){
   const vw=window.innerWidth,vh=window.innerHeight;
   const bg=document.getElementById('bg-layer');
-  for(let i=0;i<BG_NAMES.length;i++){
-    const b64=window.RB64[BG_NAMES[i]];if(!b64)continue;
-    const data=await decode(b64);
+  await Promise.all(BG_NAMES.map(async name=>{
+    const b64=window.RB64[name];if(!b64)return;
+    const data=await decode(b64,name);
     const wrap=document.createElement('div');wrap.className='bg-ring';
     const sz=70+Math.random()*110;wrap.style.cssText=`width:${sz}px;height:${sz}px;`;
     bg.appendChild(wrap);
@@ -286,7 +289,7 @@ async function spawnBg(){
       {opacity:op,transform:`translate(${dx*.7}px,${dy*.7}px) rotate(${(Math.random()*120-60)}deg) scale(1.04)`,offset:.85},
       {opacity:0,transform:`translate(${dx}px,${dy}px) rotate(${(Math.random()*180-90)}deg) scale(.85)`}
     ],{duration:dur,delay,iterations:Infinity,easing:'ease-in-out'});
-  }
+  }));
 }
 window.addEventListener('load',()=>setTimeout(spawnBg,300));
 </script>
