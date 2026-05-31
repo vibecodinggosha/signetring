@@ -1247,7 +1247,7 @@ function showShop(){
         '<div class="shop-item-lvl">Куплено: '+lvl+'х · Следующий: '+cost+' 💰</div>'+
       '</div>'+
       '<button class="shop-buy-btn" '+(canBuy?'':'disabled')+
-      ' onclick="buyItem(''+item.id+'')">'+cost+' 💰</button>';
+      ' onclick="buyItem(this.dataset.shopid)" data-shopid="'+item.id+'">'+cost+' 💰</button>';
     cont.appendChild(div);
   });
 }
