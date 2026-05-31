@@ -1015,51 +1015,43 @@ function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 
 // ─── INIT ───
 initSelect();
-</script>
 
-// ─────────────────────────────────────────────────────────
-// SUPABASE
-// ─────────────────────────────────────────────────────────
-const SUPA = window.supabase.createClient(
-  'https://dgjwuyvuhnyficteevvm.supabase.co',
-  'sb_publishable_lLJXkBprEUwSWnb_PxXbEQ_RQiMMs2h'
-);
+// ─── SUPABASE ───
+let SUPA = null;
+try { SUPA = window.supabase?.createClient('https://dgjwuyvuhnyficteevvm.supabase.co','sb_publishable_lLJXkBprEUwSWnb_PxXbEQ_RQiMMs2h'); } catch(e) {}
 
 async function dbSave(){
-  const nick=localStorage.getItem('rb_nick');if(!nick)return;
-  const {error}=await SUPA.from('players').upsert({
+  const nick=localStorage.getItem('rb_nick');if(!nick||!SUPA)return;
+  try{await SUPA.from('players').upsert({
     nickname:nick,player_ring:S.playerRing,
     current_level:S.currentLevel,max_unlocked:S.maxUnlocked,
     completed_levels:JSON.stringify([...S.completedLevels]),
     p_hp:S.pHP,p_max_hp:S.pMaxHP,p_atk:S.pAtk,p_def:S.pDef,
     p_sp:S.pSP,p_max_sp:S.pMaxSP,p_base_atk:S.pBaseAtk,p_base_def:S.pBaseDef,
     updated_at:new Date().toISOString()
-  },{onConflict:'nickname'});
-  if(!error)showSaveInd();
+  },{onConflict:'nickname'});showSaveInd();}catch(e){console.warn(e);}
 }
 
 async function dbLoad(nick){
-  const {data}=await SUPA.from('players').select('*').eq('nickname',nick).maybeSingle();
-  return data;
+  if(!SUPA)return null;
+  try{const{data}=await SUPA.from('players').select('*').eq('nickname',nick).maybeSingle();return data;}
+  catch(e){return null;}
 }
 
 async function dbLeaderboard(){
-  const {data}=await SUPA.from('players')
-    .select('nickname,player_ring,max_unlocked')
-    .order('max_unlocked',{ascending:false}).limit(10);
-  return data||[];
+  if(!SUPA)return[];
+  try{const{data}=await SUPA.from('players').select('nickname,player_ring,max_unlocked').order('max_unlocked',{ascending:false}).limit(10);return data||[];}
+  catch(e){return[];}
 }
 
 function showSaveInd(){
   const el=document.getElementById('save-ind');
-  el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'),1800);
+  el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1800);
 }
 
 function restoreFromDB(row){
   S.playerRing=row.player_ring;
-  S.currentLevel=row.current_level||1;
-  S.maxUnlocked=row.max_unlocked||1;
+  S.currentLevel=row.current_level||1;S.maxUnlocked=row.max_unlocked||1;
   try{S.completedLevels=new Set(JSON.parse(row.completed_levels||'[]'));}catch(e){}
   S.pHP=row.p_hp||0;S.pMaxHP=row.p_max_hp||0;
   S.pAtk=row.p_atk||0;S.pDef=row.p_def||0;
@@ -1069,30 +1061,22 @@ function restoreFromDB(row){
 
 async function submitNick(){
   const inp=document.getElementById('nick-input');
-  const nick=inp.value.trim().replace(/[^a-zA-Zа-яёА-ЯЁ0-9_\-]/g,'');
-  if(nick.length<2){
-    document.getElementById('nick-err').textContent='Минимум 2 символа';
-    inp.focus();return;
-  }
+  const nick=inp.value.trim().replace(/[^a-zA-Z\u0400-\u04FF0-9_\-]/g,'');
+  if(nick.length<2){document.getElementById('nick-err').textContent='Минимум 2 символа';inp.focus();return;}
   document.getElementById('nick-err').textContent='';
   const btn=document.getElementById('nick-submit-btn');
-  btn.textContent='ЗАГРУЗКА...';btn.style.pointerEvents='none';
+  btn.textContent='...';btn.style.pointerEvents='none';
   localStorage.setItem('rb_nick',nick);
   const row=await dbLoad(nick);
   if(row&&row.player_ring){
     restoreFromDB(row);
-    // Pre-select saved ring
     selKey=row.player_ring;S.playerRing=row.player_ring;
     document.getElementById('start-btn').classList.add('ready');
-    // Highlight card when DOM is ready
-    setTimeout(()=>{
-      const card=document.querySelector(`.ring-card[data-key="${CSS.escape(row.player_ring)}"]`);
-      if(card)card.classList.add('sel');
-    },100);
+    setTimeout(()=>{const card=document.querySelector('.ring-card[data-key="'+CSS.escape(row.player_ring)+'"]');if(card)card.classList.add('sel');},200);
   }
   document.getElementById('nick-overlay').classList.add('hidden');
   btn.textContent='ВОЙТИ В БОЙ';btn.style.pointerEvents='';
-  document.getElementById('map-nick-label')&&(document.getElementById('map-nick-label').textContent='👤 '+nick);
+  const nl=document.getElementById('map-nick-label');if(nl)nl.textContent='👤 '+nick;
 }
 
 async function showLeaderboard(){
@@ -1101,43 +1085,34 @@ async function showLeaderboard(){
   list.innerHTML='<div class="lb-empty">Загрузка...</div>';
   const rows=await dbLeaderboard();
   const me=localStorage.getItem('rb_nick')||'';
-  if(!rows.length){list.innerHTML='<div class="lb-empty">Пока нет игроков</div>';return;}
   list.innerHTML='';
+  if(!rows.length){list.innerHTML='<div class="lb-empty">Пока нет игроков</div>';return;}
   rows.forEach((r,i)=>{
     const el=document.createElement('div');el.className='lb-row';
     const rankCls=i===0?'r1':i===1?'r2':i===2?'r3':'rn';
     const ringName=(r.player_ring||'?').replace(/^\d+\.\s*/,'');
-    const isMeClass=r.nickname===me?' me':'';
-    el.innerHTML=`<span class="lb-rank ${rankCls}">${i+1}</span>`+
-      `<span class="lb-nick${isMeClass}">${r.nickname}${r.nickname===me?' ←':''} </span>`+
-      `<span class="lb-lv">LVL ${r.max_unlocked}</span>`+
-      `<span class="lb-ring-name">${ringName}</span>`;
+    el.innerHTML='<span class="lb-rank '+rankCls+'">'+(i+1)+'</span>'+
+      '<span class="lb-nick'+(r.nickname===me?' me':'')+'">'+r.nickname+(r.nickname===me?' ←':'')+' </span>'+
+      '<span class="lb-lv">LVL '+r.max_unlocked+'</span>'+
+      '<span class="lb-ring-name">'+ringName+'</span>';
     list.appendChild(el);
   });
 }
 
-// ─── Check nick on load ───
+// Check saved nick on load
 (function(){
   const saved=localStorage.getItem('rb_nick');
   if(saved){
-    // Already have nick — load silently, hide modal
     document.getElementById('nick-overlay').classList.add('hidden');
     dbLoad(saved).then(row=>{
       if(row&&row.player_ring){
-        restoreFromDB(row);
-        selKey=row.player_ring;S.playerRing=row.player_ring;
+        restoreFromDB(row);selKey=row.player_ring;S.playerRing=row.player_ring;
         document.getElementById('start-btn').classList.add('ready');
-        setTimeout(()=>{
-          const card=document.querySelector(`.ring-card[data-key="${CSS.escape(row.player_ring)}"]`);
-          if(card)card.classList.add('sel');
-        },300);
+        setTimeout(()=>{const card=document.querySelector('.ring-card[data-key="'+CSS.escape(row.player_ring)+'"]');if(card)card.classList.add('sel');},400);
       }
     });
   } else {
-    // pre-fill enter key
-    document.getElementById('nick-input').addEventListener('keydown',e=>{
-      if(e.key==='Enter')submitNick();
-    });
+    document.getElementById('nick-input').addEventListener('keydown',e=>{if(e.key==='Enter')submitNick();});
   }
 })();
 
