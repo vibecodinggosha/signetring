@@ -1052,14 +1052,23 @@ try { SUPA = window.supabase?.createClient('https://dgjwuyvuhnyficteevvm.supabas
 
 async function dbSave(){
   const nick=localStorage.getItem('rb_nick');if(!nick||!SUPA)return;
-  try{await SUPA.from('players').upsert({
-    nickname:nick,player_ring:S.playerRing,password_hash:S.pwdHash||undefined,
+  const payload={
+    nickname:nick,player_ring:S.playerRing,
     current_level:S.currentLevel,max_unlocked:S.maxUnlocked,
     completed_levels:JSON.stringify([...S.completedLevels]),
     p_hp:S.pHP,p_max_hp:S.pMaxHP,p_atk:S.pAtk,p_def:S.pDef,
     p_sp:S.pSP,p_max_sp:S.pMaxSP,p_base_atk:S.pBaseAtk,p_base_def:S.pBaseDef,
     updated_at:new Date().toISOString()
-  },{onConflict:'nickname'});showSaveInd();}catch(e){console.warn(e);}
+  };
+  if(S.pwdHash)payload.password_hash=S.pwdHash;
+  try{
+    await SUPA.from('players').upsert(payload,{onConflict:'nickname'});
+    showSaveInd();
+  }catch(e){
+    delete payload.password_hash;
+    try{await SUPA.from('players').upsert(payload,{onConflict:'nickname'});showSaveInd();}
+    catch(e2){console.warn('dbSave:',e2);}
+  }
 }
 
 async function dbLoad(nick){
