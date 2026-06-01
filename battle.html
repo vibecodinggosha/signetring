@@ -1256,41 +1256,40 @@ function showShop(){
   document.getElementById('shop-gold-label').textContent='💰 '+S.gold;
   const cont=document.getElementById('shop-items');
   cont.innerHTML='';
-  // Free/starter rings first
-  const starters=['01. Gold','03. Silver'];
-  for(const key of starters){
+  const allRings=[['01. Gold',null],['03. Silver',null],...Object.entries(RING_PRICES)];
+  for(const [key,info] of allRings){
     const d=RING_DATA[key];if(!d)continue;
-    const div=document.createElement('div');div.className='shop-item';
-    const ringName=key.replace(/^\d+\.\s*/,'');
-    div.innerHTML=
-      '<div class="shop-item-icon">⭐</div>'+
-      '<div class="shop-item-info">'+
-        '<div class="shop-item-name">'+ringName.toUpperCase()+'</div>'+
-        '<div class="shop-item-desc">'+d.special.name+' — '+d.special.desc+'</div>'+
-        '<div class="shop-item-lvl">HP:'+d.hp+' ATK:'+d.atk+' DEF:'+d.def+' · SP:'+d.maxSP+'</div>'+
-      '</div>'+
-      '<span style="font-family:JetBrains Mono,monospace;font-size:10px;color:var(--green);letter-spacing:.08em;">FREE</span>';
-    cont.appendChild(div);
-  }
-  // Purchasable rings
-  for(const [key,info] of Object.entries(RING_PRICES)){
-    const d=RING_DATA[key];if(!d)continue;
-    const owned=S.unlockedRings.has(key);
-    const canBuy=!owned&&S.gold>=info.price;
+    const owned=S.unlockedRings.has(key)||!info;
+    const isFree=!info;
+    const canBuy=!owned&&S.gold>=(info?info.price:0);
     const ringName=key.replace(/^\d+\.\s*/,'');
     const div=document.createElement('div');div.className='shop-item';
-    div.innerHTML=
-      '<div class="shop-item-icon">'+(owned?'✅':'🔒')+'</div>'+
-      '<div class="shop-item-info">'+
-        '<div class="shop-item-name">'+ringName.toUpperCase()+'</div>'+
-        '<div class="shop-item-desc">'+d.special.name+' — '+d.special.desc+'</div>'+
-        '<div class="shop-item-lvl">HP:'+d.hp+' ATK:'+d.atk+' DEF:'+d.def+' · SP:'+d.maxSP+'</div>'+
-      '</div>'+
-      (owned
-        ?'<span style="font-family:JetBrains Mono,monospace;font-size:10px;color:var(--green);letter-spacing:.08em;">OWNED</span>'
-        :'<button class="shop-buy-btn" '+(canBuy?'':'disabled')+
-         ' onclick="buyRing(this.dataset.shopid)" data-shopid="'+key+'">'+info.price+' 💰</button>');
+    // Lottie container
+    const la=document.createElement('div');
+    la.className='shop-ring-anim';la.style.cssText='width:64px;height:64px;flex-shrink:0;';
+    if(!owned)la.style.opacity='0.55';
+    // Info
+    const info_div=document.createElement('div');info_div.className='shop-item-info';
+    info_div.innerHTML=
+      '<div class="shop-item-name">'+ringName.toUpperCase()+'</div>'+
+      '<div class="shop-item-desc">'+d.special.name+' — '+d.special.desc+'</div>'+
+      '<div class="shop-item-lvl">HP:'+d.hp+' ATK:'+d.atk+' DEF:'+d.def+' · SP:'+d.maxSP+'</div>';
+    // Action
+    const act=document.createElement('div');act.style.cssText='flex-shrink:0;';
+    if(isFree||owned){
+      act.innerHTML='<span style="font-family:JetBrains Mono,monospace;font-size:10px;color:var(--green);letter-spacing:.08em;">'+(isFree?'FREE':'OWNED')+'</span>';
+    } else {
+      act.innerHTML='<button class="shop-buy-btn" '+(canBuy?'':'disabled')+
+        ' onclick="buyRing(this.dataset.shopid)" data-shopid="'+key+'">'+info.price+' 💰</button>';
+    }
+    div.appendChild(la);div.appendChild(info_div);div.appendChild(act);
     cont.appendChild(div);
+    // Lazy-load animation
+    const io=new IntersectionObserver(async([e])=>{
+      if(!e.isIntersecting)return;io.disconnect();
+      await makeLottie(la,key,false);
+    },{root:cont,rootMargin:'100px'});
+    io.observe(la);
   }
 }
 
