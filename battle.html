@@ -322,7 +322,7 @@ nav{position:sticky;top:0;z-index:200;height:56px;
   <nav>
     <a href="index.html" class="nav-logo">SIGNET RING</a>
     <div class="nav-act">
-      <a href="index.html" class="nbtn">← Сайт</a>
+      <a href="index.html" class="nbtn">← Site</a>
     </div>
   </nav>
   <div class="sel-hero">
@@ -332,8 +332,8 @@ nav{position:sticky;top:0;z-index:200;height:56px;
   </div>
   <div class="ring-grid" id="ring-grid"></div>
   <div class="sel-footer">
-    <span class="sel-hint">Выберите кольцо-бойца</span>
-    <button class="hbtn hbtn-w" id="start-btn" onclick="goMap()" disabled>НАЧАТЬ БОЙ</button>
+    <span class="sel-hint">Choose your ring fighter</span>
+    <button class="hbtn hbtn-w" id="start-btn" onclick="goMap()" disabled>START BATTLE</button>
   </div>
 </div>
 
@@ -342,11 +342,11 @@ nav{position:sticky;top:0;z-index:200;height:56px;
   <nav>
     <a href="index.html" class="nav-logo">SIGNET RING</a>
     <div class="nav-act">
-      <button class="nbtn" onclick="showScreen('select')">Сменить кольцо</button>
+      <button class="nbtn" onclick="showScreen('select')">Change Ring</button>
     </div>
   </nav>
   <div class="map-hero">
-    <span class="map-pre">02 — Level select</span>
+    <span class="map-pre">02 — Level Select</span>
     <div class="map-title">RING BATTLE</div>
     <div class="player-badge">
       <div class="pb-ring" id="pb-ring"></div>
@@ -359,9 +359,9 @@ nav{position:sticky;top:0;z-index:200;height:56px;
     </div>
     <div class="map-acts" style="flex-wrap:wrap;align-items:center;">
       <span class="gold-display" id="gold-display">💰 0</span>
-      <button class="map-act-btn" onclick="showShop()">🛒 Магазин</button>
-      <button class="map-act-btn" onclick="showAchievements()">🏅 Ачивки</button>
-      <button class="map-act-btn" onclick="showLeaderboard()">🏆 Рейтинг</button>
+      <button class="map-act-btn" onclick="showShop()">🛒 Shop</button>
+      <button class="map-act-btn" onclick="showAchievements()">🏅 Achievements</button>
+      <button class="map-act-btn" onclick="showLeaderboard()">🏆 Leaderboard</button>
     </div>
   </div>
   <div class="level-list" id="level-list"></div>
@@ -418,8 +418,8 @@ nav{position:sticky;top:0;z-index:200;height:56px;
     <div class="result-title" id="res-title">VICTORY</div>
     <div class="result-sub" id="res-sub">Level 1 cleared</div>
     <div class="result-btns">
-      <button class="result-btn primary" id="res-btn1" onclick="resultAction(1)">ПРОДОЛЖИТЬ</button>
-      <button class="result-btn secondary" id="res-btn2" onclick="resultAction(2)">КАРТА</button>
+      <button class="result-btn primary" id="res-btn1" onclick="resultAction(1)">CONTINUE</button>
+      <button class="result-btn secondary" id="res-btn2" onclick="resultAction(2)">MAP</button>
     </div>
   </div>
 </div>
@@ -997,14 +997,14 @@ async function showResult(won){
   const btn1=document.getElementById('res-btn1');
   const btn2=document.getElementById('res-btn2');
   if(won&&S.currentLevel<20){
-    btn1.textContent='СЛЕДУЮЩИЙ';btn1.style.display='';
-    btn2.textContent='КАРТА';btn2.style.display='';
+    btn1.textContent='NEXT';btn1.style.display='';
+    btn2.textContent='MAP';btn2.style.display='';
   } else if(won&&S.currentLevel>=20){
-    btn1.textContent='ЗАНОВО';btn1.style.display='';
+    btn1.textContent='RETRY';btn1.style.display='';
     btn2.style.display='none';
   } else {
-    btn1.textContent='ПОВТОР';btn1.style.display='';
-    btn2.textContent='КАРТА';btn2.style.display='';
+    btn1.textContent='RETRY';btn1.style.display='';
+    btn2.textContent='MAP';btn2.style.display='';
   }
 
   showScreen('result');
@@ -1181,8 +1181,8 @@ async function submitNick(){
   const nick=inp.value.trim().replace(/[^a-zA-Z\u0400-\u04FF0-9_\-]/g,'');
   const pwd=passInp?passInp.value:'';
   const errEl=document.getElementById('nick-err');
-  if(nick.length<2){errEl.textContent='Минимум 2 символа в нике';inp.focus();return;}
-  if(pwd.length<3){errEl.textContent='Минимум 3 символа в пароле';if(passInp)passInp.focus();return;}
+  if(nick.length<2){errEl.textContent='Nickname must be at least 2 characters';inp.focus();return;}
+  if(pwd.length<3){errEl.textContent='Password must be at least 3 characters';if(passInp)passInp.focus();return;}
   errEl.textContent='';
   const btn=document.getElementById('nick-submit-btn');
   btn.textContent='...';btn.style.pointerEvents='none';
@@ -1191,8 +1191,8 @@ async function submitNick(){
   const row=await dbLoad(nick);
   if(row){
     if(row.password_hash&&row.password_hash!==pwdHash){
-      errEl.textContent='Неверный пароль';
-      btn.textContent='ВОЙТИ В БОЙ';btn.style.pointerEvents='';return;
+      errEl.textContent='Wrong password';
+      btn.textContent='ENTER BATTLE';btn.style.pointerEvents='';return;
     }
     if(row.player_ring){
       restoreFromDB(row);selKey=row.player_ring;S.playerRing=row.player_ring;
@@ -1203,17 +1203,17 @@ async function submitNick(){
   localStorage.setItem('rb_nick',nick);
   updateGoldDisplay();
   document.getElementById('nick-overlay').classList.add('hidden');
-  btn.textContent='ВОЙТИ В БОЙ';btn.style.pointerEvents='';
+  btn.textContent='ENTER BATTLE';btn.style.pointerEvents='';
   const nl=document.getElementById('map-nick-label');if(nl)nl.textContent='👤 '+nick;
 }
 
 
 // ── SHOP ──
 const SHOP_ITEMS = [
-  {id:'atk', icon:'⚔', name:'ЗАТОЧКА', desc:'ATK permanently +5', cost:60, stat:'atk', val:5},
-  {id:'def', icon:'🛡', name:'БРОНЯ',   desc:'DEF permanently +3', cost:50, stat:'def', val:3},
-  {id:'hp',  icon:'❤', name:'ЖИВУЧЕСТЬ',desc:'MAX HP permanently +30', cost:45, stat:'hp',  val:30},
-  {id:'sp',  icon:'✨', name:'ЭНЕРГИЯ', desc:'MAX SP permanently +15', cost:35, stat:'sp',  val:15},
+  {id:'atk', icon:'⚔', name:'SHARPEN', desc:'ATK permanently +5', cost:60, stat:'atk', val:5},
+  {id:'def', icon:'🛡', name:'ARMOR',   desc:'DEF permanently +3', cost:50, stat:'def', val:3},
+  {id:'hp',  icon:'❤', name:'VITALITY',desc:'MAX HP permanently +30', cost:45, stat:'hp',  val:30},
+  {id:'sp',  icon:'✨', name:'ENERGY',  desc:'MAX SP permanently +15', cost:35, stat:'sp',  val:15},
 ];
 
 function updateGoldDisplay(){
@@ -1244,7 +1244,7 @@ function showShop(){
       '<div class="shop-item-info">'+
         '<div class="shop-item-name">'+item.name+'</div>'+
         '<div class="shop-item-desc">'+item.desc+'</div>'+
-        '<div class="shop-item-lvl">Куплено: '+lvl+'х · Следующий: '+cost+' 💰</div>'+
+        '<div class="shop-item-lvl">Bought: '+lvl+'x · Next: '+cost+' 💰</div>'+
       '</div>'+
       '<button class="shop-buy-btn" '+(canBuy?'':'disabled')+
       ' onclick="buyItem(this.dataset.shopid)" data-shopid="'+item.id+'">'+cost+' 💰</button>';
@@ -1271,13 +1271,13 @@ function buyItem(id){
 
 // ── ACHIEVEMENTS ──
 const ACHIEVEMENTS = [
-  {id:'first_win',   icon:'⚔', name:'ПЕРВАЯ КРОВЬ',  desc:'Выиграй свой первый бой'},
-  {id:'lvl10',       icon:'🔥', name:'ВЕТЕРАН',       desc:'Пройди 10 уровней'},
-  {id:'champion',    icon:'👑', name:'ЧЕМПИОН',       desc:'Пройди все 20 уровней'},
-  {id:'boss_slayer', icon:'💀', name:'ИСТРЕБИТЕЛЬ БОССОВ', desc:'Победи первого босса'},
-  {id:'gold500',     icon:'💰', name:'БОГАЧ',         desc:'Накопи 500 золота суммарно'},
-  {id:'shopper5',    icon:'🛒', name:'ШОППИНГ-ТЕРАПИЯ',desc:'Купи 5 апгрейдов в магазине'},
-  {id:'all_bosses',  icon:'🌌', name:'ЛЕГЕНДА',       desc:'Победи всех 4 боссов'},
+  {id:'first_win',   icon:'⚔', name:'FIRST BLOOD',   desc:'Win your first battle'},
+  {id:'lvl10',       icon:'🔥', name:'VETERAN',       desc:'Complete 10 levels'},
+  {id:'champion',    icon:'👑', name:'CHAMPION',      desc:'Complete all 20 levels'},
+  {id:'boss_slayer', icon:'💀', name:'BOSS SLAYER',   desc:'Defeat the first boss'},
+  {id:'gold500',     icon:'💰', name:'GOLD HOARDER',  desc:'Earn 500 gold total'},
+  {id:'shopper5',    icon:'🛒', name:'SHOPAHOLIC',    desc:'Buy 5 shop upgrades'},
+  {id:'all_bosses',  icon:'🌌', name:'LEGEND',        desc:'Defeat all 4 bosses'},
 ];
 
 function checkAchievements(){
@@ -1308,8 +1308,8 @@ function showAchievements(){
         '<div class="ach-desc">'+a.desc+'</div>'+
       '</div>'+
       (unlocked
-        ?'<span class="ach-status">ПОЛУЧЕНО</span>'
-        :'<span class="ach-locked-status">ЗАКРЫТО</span>');
+        ?'<span class="ach-status">UNLOCKED</span>'
+        :'<span class="ach-locked-status">LOCKED</span>');
     cont.appendChild(div);
   });
 }
@@ -1317,11 +1317,11 @@ function showAchievements(){
 async function showLeaderboard(){
   document.getElementById('lb-overlay').classList.add('on');
   const list=document.getElementById('lb-list');
-  list.innerHTML='<div class="lb-empty">Загрузка...</div>';
+  list.innerHTML='<div class="lb-empty">Loading...</div>';
   const rows=await dbLeaderboard();
   const me=localStorage.getItem('rb_nick')||'';
   list.innerHTML='';
-  if(!rows.length){list.innerHTML='<div class="lb-empty">Пока нет игроков</div>';return;}
+  if(!rows.length){list.innerHTML='<div class="lb-empty">No players yet</div>';return;}
   rows.forEach((r,i)=>{
     const el=document.createElement('div');el.className='lb-row';
     const rankCls=i===0?'r1':i===1?'r2':i===2?'r3':'rn';
@@ -1353,12 +1353,12 @@ async function showLeaderboard(){
   <div class="nick-box">
     <div class="nick-pre">TON · $SIGNET</div>
     <div class="nick-title">RING BATTLE</div>
-    <div class="nick-sub">Введите ник и пароль — прогресс<br>сохраняется и доступен с любого устройства</div>
-    <input class="nick-input" id="nick-input" maxlength="20" placeholder="Никнейм" autocomplete="off">
-    <input class="nick-input" id="pass-input" type="password" maxlength="64" placeholder="Пароль">
+    <div class="nick-sub">Enter nickname & password —<br>progress is saved across devices</div>
+    <input class="nick-input" id="nick-input" maxlength="20" placeholder="Nickname" autocomplete="off">
+    <input class="nick-input" id="pass-input" type="password" maxlength="64" placeholder="Password">
     <div class="nick-err" id="nick-err"></div>
-    <button class="hbtn hbtn-w" id="nick-submit-btn" onclick="submitNick()" style="width:100%;padding:14px;border:none;">ВОЙТИ В БОЙ</button>
-    <div class="nick-hint">Новый ник → создаст аккаунт · Существующий → войдёт в него</div>
+    <button class="hbtn hbtn-w" id="nick-submit-btn" onclick="submitNick()" style="width:100%;padding:14px;border:none;">ENTER BATTLE</button>
+    <div class="nick-hint">New nickname → creates account · Existing → logs in</div>
   </div>
 </div>
 
@@ -1366,7 +1366,7 @@ async function showLeaderboard(){
 <div class="lb-overlay" id="lb-overlay">
   <div class="lb-topbar">
     <span class="lb-heading">🏆 TOP FIGHTERS</span>
-    <button class="lb-close-btn" onclick="document.getElementById('lb-overlay').classList.remove('on')">← Назад</button>
+    <button class="lb-close-btn" onclick="document.getElementById('lb-overlay').classList.remove('on')">← Back</button>
   </div>
   <div class="lb-scroll" id="lb-list"></div>
 </div>
@@ -1374,10 +1374,10 @@ async function showLeaderboard(){
 <!-- SHOP -->
 <div class="shop-overlay" id="shop-overlay">
   <div class="shop-topbar">
-    <span class="shop-heading">🛒 МАГАЗИН</span>
+    <span class="shop-heading">🛒 SHOP</span>
     <div style="display:flex;align-items:center;gap:12px;">
       <span class="shop-gold-tag" id="shop-gold-label">💰 0</span>
-      <button class="shop-close" onclick="document.getElementById('shop-overlay').classList.remove('on')">← Назад</button>
+      <button class="shop-close" onclick="document.getElementById('shop-overlay').classList.remove('on')">← Back</button>
     </div>
   </div>
   <div class="shop-scroll" id="shop-items"></div>
@@ -1386,8 +1386,8 @@ async function showLeaderboard(){
 <!-- ACHIEVEMENTS -->
 <div class="ach-overlay" id="ach-overlay">
   <div class="ach-topbar">
-    <span class="ach-heading">🏅 ДОСТИЖЕНИЯ</span>
-    <button class="ach-close" onclick="document.getElementById('ach-overlay').classList.remove('on')">← Назад</button>
+    <span class="ach-heading">🏅 ACHIEVEMENTS</span>
+    <button class="ach-close" onclick="document.getElementById('ach-overlay').classList.remove('on')">← Back</button>
   </div>
   <div class="ach-scroll" id="ach-grid"></div>
 </div>
@@ -1396,7 +1396,7 @@ async function showLeaderboard(){
 <div class="gold-toast" id="gold-toast"></div>
 
 <!-- Save indicator -->
-<div class="save-ind" id="save-ind">✓ СОХРАНЕНО</div>
+<div class="save-ind" id="save-ind">✓ SAVED</div>
 
 </body>
 </html>
